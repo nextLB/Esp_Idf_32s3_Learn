@@ -2,6 +2,9 @@
 
 # ESP IDF LEARN
 
+    注意若要更新项目，请先用 idf.py fullclean   这个清空build后再上传git
+
+    
 ## Window11
 
 ### 安装配置烧录工具
@@ -30,3 +33,28 @@
     舵机应该开始 0° → 180° → 0° 来回扫动，每步 5°，每步停留 50ms，一个来回约 4 秒
 
 
+
+### 简易呼吸灯的Demo    （可见breath_led_demo文件夹下）
+
+    同上，正常的编译烧录后，运行成功的终端输出字样与效果说明如下：
+
+    终端输出：I (266) main_task: Started on CPU0
+            I (286) main_task: Calling app_main()
+            I (286) ws2812_breath: Color-cycling breath on GPIO48, 7 colors
+            I (286) ws2812_breath: Color: Red
+            I (1206) ws2812_breath: Color: Green
+            I (2126) ws2812_breath: Color: Blue
+            I (3046) ws2812_breath: Color: Yellow
+            I (3966) ws2812_breath: Color: Cyan
+            I (4886) ws2812_breath: Color: Magenta
+            I (5806) ws2812_breath: Color: White
+            I (6726) ws2812_breath: Color: Red
+            I (7646) ws2812_breath: Color: Green
+            I (8566) ws2812_breath: Color: Blue
+            ......
+    效果就是灯一闪一闪的还换颜色
+
+
+### 常见的故障与解决办法
+
+    关于esp32s3编译烧录上的问题，常用按着Boot键，按一次Ret键后，松开Boot这样清空解决
