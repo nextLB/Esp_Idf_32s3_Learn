@@ -3,8 +3,15 @@ dependencies:
     source:
       type: idf
     version: 5.5.5
+  led_strip:
+    dependencies: []
+    source:
+      path: D:\LB\Esp_Idf_32s3_Learn\breath_led_demo\breath_led_demo\components\led_strip
+      type: local
+    version: 3.1.1
 direct_dependencies:
+- espressif/led_strip
 - idf
-manifest_hash: d74b296034e5c931ed374fd6bd0a1201ee09453c57b839389ae1eb9977f17251
+manifest_hash: d6bc108bd16d43f8f47e8ef01c2a31a73e693da6b6a0b6b998f4e6f47cec9742
 target: esp32s3
 version: 2.0.0
