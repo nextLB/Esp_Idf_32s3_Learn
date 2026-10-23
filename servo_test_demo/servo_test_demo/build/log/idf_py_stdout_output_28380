@@ -1,0 +1,442 @@
+Command: D:\esp_idf\Espressif\python_env\idf5.5_py3.11_env\Scripts\python.exe D:\esp_idf\Espressif\frameworks\esp-idf-v5.5.5\tools/idf_monitor.py -p COM3 -b 115200 --toolchain-prefix xtensa-esp32s3-elf- --target esp32s3 --revision 0 D:\LB\Esp_Idf_32s3_Learn\servo_test_demo\servo_test_demo\build\servo_test_demo.elf D:\LB\Esp_Idf_32s3_Learn\servo_test_demo\servo_test_demo\build\bootloader\bootloader.elf --force-color -m 'D:\esp_idf\Espressif\python_env\idf5.5_py3.11_env\Scripts\python.exe' 'D:\esp_idf\Espressif\frameworks\esp-idf-v5.5.5\tools\idf.py' '-p' 'COM3'
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x1 (POWERON),boot:0x8 (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x14f0
+load:0x403c8700,len:0xd24
+load:0x403cb700,len:0x2eec
+entry 0x403c8924
+[0;32mI (24) boot: ESP-IDF v5.5.5 2nd stage bootloader[0m
+[0;32mI (25) boot: compile time Oct 23 2026 17:29:09[0m
+[0;32mI (25) boot: Multicore bootloader[0m
+[0;32mI (25) boot: chip revision: v0.2[0m
+[0;32mI (28) boot: efuse block revision: v1.3[0m
+[0;32mI (31) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (35) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (39) boot.esp32s3: SPI Flash Size : 2MB[0m
+[0;32mI (43) boot: Enabling RNG early entropy source...[0m
+[0;32mI (47) boot: Partition Table:[0m
+[0;32mI (50) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (56) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (63) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (69) boot:  2 factory          factory app      00 00 00010000 00100000[0m
+[0;32mI (76) boot: End of partition table[0m
+[0;32mI (79) esp_image: segment 0: paddr=00010020 vaddr=3c020020 size=0a738h ( 42808) map[0m
+[0;32mI (94) esp_image: segment 1: paddr=0001a760 vaddr=3fc92700 size=02f48h ( 12104) load[0m
+[0;32mI (97) esp_image: segment 2: paddr=0001d6b0 vaddr=40374000 size=02968h ( 10600) load[0m
+[0;32mI (104) esp_image: segment 3: paddr=00020020 vaddr=42000020 size=14bc4h ( 84932) map[0m
+[0;32mI (124) esp_image: segment 4: paddr=00034bec vaddr=40376968 size=0bc90h ( 48272) load[0m
+[0;32mI (135) esp_image: segment 5: paddr=00040884 vaddr=50000000 size=00020h (    32) load[0m
+[0;32mI (141) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (142) boot: Disabling RNG early entropy source...[0m
+[0;32mI (153) cpu_start: Multicore app[0m
+[0;32mI (162) cpu_start: GPIO 44 and 43 are used as console UART I/O pins[0m
+[0;32mI (162) cpu_start: Pro cpu start user code[0m
+[0;32mI (162) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (164) app_init: Application information:[0m
+[0;32mI (168) app_init: Project name:     servo_test_demo[0m
+[0;32mI (172) app_init: App version:      8d18c76-dirty[0m
+[0;32mI (177) app_init: Compile time:     Oct 23 2026 17:28:44[0m
+[0;32mI (182) app_init: ELF file SHA256:  3a07725ad...[0m
+[0;32mI (186) app_init: ESP-IDF:          v5.5.5[0m
+[0;32mI (190) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (194) efuse_init: Max chip rev:     v0.99 [0m
+[0;32mI (198) efuse_init: Chip rev:         v0.2[0m
+[0;32mI (202) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (208) heap_init: At 3FC95F58 len 000537B8 (333 KiB): RAM[0m
+[0;32mI (213) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (218) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (223) heap_init: At 600FE000 len 00001FE8 (7 KiB): RTCRAM[0m
+[0;32mI (230) spi_flash: detected chip: generic[0m
+[0;32mI (232) spi_flash: flash io: dio[0m
+[0;33mW (235) spi_flash: Detected size(16384k) larger than the size in the binary image header(2048k). Using the size in the binary image header.[0m
+[0;32mI (248) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (254) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (261) main_task: Started on CPU0[0m
+[0;32mI (281) main_task: Calling app_main()[0m
+[0;32mI (281) servo_sweep: Servo sweep on GPIO4, 50Hz[0m
+[0;32mI (281) servo_sweep: Angle: 0 deg (duty: 409)[0m
+[0;32mI (331) servo_sweep: Angle: 5 deg (duty: 455)[0m
+[0;32mI (381) servo_sweep: Angle: 10 deg (duty: 500)[0m
+[0;32mI (431) servo_sweep: Angle: 15 deg (duty: 546)[0m
+[0;32mI (481) servo_sweep: Angle: 20 deg (duty: 591)[0m
+[0;32mI (531) servo_sweep: Angle: 25 deg (duty: 637)[0m
+[0;32mI (581) servo_sweep: Angle: 30 deg (duty: 682)[0m
+[0;32mI (631) servo_sweep: Angle: 35 deg (duty: 728)[0m
+[0;32mI (681) servo_sweep: Angle: 40 deg (duty: 773)[0m
+[0;32mI (731) servo_sweep: Angle: 45 deg (duty: 819)[0m
+[0;32mI (781) servo_sweep: Angle: 50 deg (duty: 864)[0m
+[0;32mI (831) servo_sweep: Angle: 55 deg (duty: 910)[0m
+[0;32mI (881) servo_sweep: Angle: 60 deg (duty: 955)[0m
+[0;32mI (931) servo_sweep: Angle: 65 deg (duty: 1001)[0m
+[0;32mI (981) servo_sweep: Angle: 70 deg (duty: 1046)[0m
+[0;32mI (1031) servo_sweep: Angle: 75 deg (duty: 1092)[0m
+[0;32mI (1081) servo_sweep: Angle: 80 deg (duty: 1137)[0m
+[0;32mI (1131) servo_sweep: Angle: 85 deg (duty: 1183)[0m
+[0;32mI (1181) servo_sweep: Angle: 90 deg (duty: 1228)[0m
+[0;32mI (1231) servo_sweep: Angle: 95 deg (duty: 1274)[0m
+[0;32mI (1281) servo_sweep: Angle: 100 deg (duty: 1319)[0m
+[0;32mI (1331) servo_sweep: Angle: 105 deg (duty: 1365)[0m
+[0;32mI (1381) servo_sweep: Angle: 110 deg (duty: 1410)[0m
+[0;32mI (1431) servo_sweep: Angle: 115 deg (duty: 1456)[0m
+[0;32mI (1481) servo_sweep: Angle: 120 deg (duty: 1501)[0m
+[0;32mI (1531) servo_sweep: Angle: 125 deg (duty: 1547)[0m
+[0;32mI (1581) servo_sweep: Angle: 130 deg (duty: 1592)[0m
+[0;32mI (1631) servo_sweep: Angle: 135 deg (duty: 1638)[0m
+[0;32mI (1681) servo_sweep: Angle: 140 deg (duty: 1683)[0m
+[0;32mI (1731) servo_sweep: Angle: 145 deg (duty: 1729)[0m
+[0;32mI (1781) servo_sweep: Angle: 150 deg (duty: 1774)[0m
+[0;32mI (1831) servo_sweep: Angle: 155 deg (duty: 1820)[0m
+[0;32mI (1881) servo_sweep: Angle: 160 deg (duty: 1865)[0m
+[0;32mI (1931) servo_sweep: Angle: 165 deg (duty: 1911)[0m
+[0;32mI (1981) servo_sweep: Angle: 170 deg (duty: 1956)[0m
+[0;32mI (2031) servo_sweep: Angle: 175 deg (duty: 2002)[0m
+[0;32mI (2081) servo_sweep: Angle: 180 deg (duty: 2047)[0m
+[0;32mI (2631) servo_sweep: Angle: 180 deg (duty: 2047)[0m
+[0;32mI (2681) servo_sweep: Angle: 175 deg (duty: 2002)[0m
+[0;32mI (2731) servo_sweep: Angle: 170 deg (duty: 1956)[0m
+[0;32mI (2781) servo_sweep: Angle: 165 deg (duty: 1911)[0m
+[0;32mI (2831) servo_sweep: Angle: 160 deg (duty: 1865)[0m
+[0;32mI (2881) servo_sweep: Angle: 155 deg (duty: 1820)[0m
+[0;32mI (2931) servo_sweep: Angle: 150 deg (duty: 1774)[0m
+[0;32mI (2981) servo_sweep: Angle: 145 deg (duty: 1729)[0m
+[0;32mI (3031) servo_sweep: Angle: 140 deg (duty: 1683)[0m
+[0;32mI (3081) servo_sweep: Angle: 135 deg (duty: 1638)[0m
+[0;32mI (3131) servo_sweep: Angle: 130 deg (duty: 1592)[0m
+[0;32mI (3181) servo_sweep: Angle: 125 deg (duty: 1547)[0m
+[0;32mI (3231) servo_sweep: Angle: 120 deg (duty: 1501)[0m
+[0;32mI (3281) servo_sweep: Angle: 115 deg (duty: 1456)[0m
+[0;32mI (3331) servo_sweep: Angle: 110 deg (duty: 1410)[0m
+[0;32mI (3381) servo_sweep: Angle: 105 deg (duty: 1365)[0m
+[0;32mI (3431) servo_sweep: Angle: 100 deg (duty: 1319)[0m
+[0;32mI (3481) servo_sweep: Angle: 95 deg (duty: 1274)[0m
+[0;32mI (3531) servo_sweep: Angle: 90 deg (duty: 1228)[0m
+[0;32mI (3581) servo_sweep: Angle: 85 deg (duty: 1183)[0m
+[0;32mI (3631) servo_sweep: Angle: 80 deg (duty: 1137)[0m
+[0;32mI (3681) servo_sweep: Angle: 75 deg (duty: 1092)[0m
+[0;32mI (3731) servo_sweep: Angle: 70 deg (duty: 1046)[0m
+[0;32mI (3781) servo_sweep: Angle: 65 deg (duty: 1001)[0m
+[0;32mI (3831) servo_sweep: Angle: 60 deg (duty: 955)[0m
+[0;32mI (3881) servo_sweep: Angle: 55 deg (duty: 910)[0m
+[0;32mI (3931) servo_sweep: Angle: 50 deg (duty: 864)[0m
+[0;32mI (3981) servo_sweep: Angle: 45 deg (duty: 819)[0m
+[0;32mI (4031) servo_sweep: Angle: 40 deg (duty: 773)[0m
+[0;32mI (4081) servo_sweep: Angle: 35 deg (duty: 728)[0m
+[0;32mI (4131) servo_sweep: Angle: 30 deg (duty: 682)[0m
+[0;32mI (4181) servo_sweep: Angle: 25 deg (duty: 637)[0m
+[0;32mI (4231) servo_sweep: Angle: 20 deg (duty: 591)[0m
+[0;32mI (4281) servo_sweep: Angle: 15 deg (duty: 546)[0m
+[0;32mI (4331) servo_sweep: Angle: 10 deg (duty: 500)[0m
+[0;32mI (4381) servo_sweep: Angle: 5 deg (duty: 455)[0m
+[0;32mI (4431) servo_sweep: Angle: 0 deg (duty: 409)[0m
+[0;32mI (4981) servo_sweep: Angle: 0 deg (duty: 409)[0m
+[0;32mI (5031) servo_sweep: Angle: 5 deg (duty: 455)[0m
+[0;32mI (5081) servo_sweep: Angle: 10 deg (duty: 500)[0m
+[0;32mI (5131) servo_sweep: Angle: 15 deg (duty: 546)[0m
+[0;32mI (5181) servo_sweep: Angle: 20 deg (duty: 591)[0m
+[0;32mI (5231) servo_sweep: Angle: 25 deg (duty: 637)[0m
+[0;32mI (5281) servo_sweep: Angle: 30 deg (duty: 682)[0m
+[0;32mI (5331) servo_sweep: Angle: 35 deg (duty: 728)[0m
+[0;32mI (5381) servo_sweep: Angle: 40 deg (duty: 773)[0m
+[0;32mI (5431) servo_sweep: Angle: 45 deg (duty: 819)[0m
+[0;32mI (5481) servo_sweep: Angle: 50 deg (duty: 864)[0m
+[0;32mI (5531) servo_sweep: Angle: 55 deg (duty: 910)[0m
+[0;32mI (5581) servo_sweep: Angle: 60 deg (duty: 955)[0m
+[0;32mI (5631) servo_sweep: Angle: 65 deg (duty: 1001)[0m
+[0;32mI (5681) servo_sweep: Angle: 70 deg (duty: 1046)[0m
+[0;32mI (5731) servo_sweep: Angle: 75 deg (duty: 1092)[0m
+[0;32mI (5781) servo_sweep: Angle: 80 deg (duty: 1137)[0m
+[0;32mI (5831) servo_sweep: Angle: 85 deg (duty: 1183)[0m
+[0;32mI (5881) servo_sweep: Angle: 90 deg (duty: 1228)[0m
+[0;32mI (5931) servo_sweep: Angle: 95 deg (duty: 1274)[0m
+[0;32mI (5981) servo_sweep: Angle: 100 deg (duty: 1319)[0m
+[0;32mI (6031) servo_sweep: Angle: 105 deg (duty: 1365)[0m
+[0;32mI (6081) servo_sweep: Angle: 110 deg (duty: 1410)[0m
+[0;32mI (6131) servo_sweep: Angle: 115 deg (duty: 1456)[0m
+[0;32mI (6181) servo_sweep: Angle: 120 deg (duty: 1501)[0m
+[0;32mI (6231) servo_sweep: Angle: 125 deg (duty: 1547)[0m
+[0;32mI (6281) servo_sweep: Angle: 130 deg (duty: 1592)[0m
+[0;32mI (6331) servo_sweep: Angle: 135 deg (duty: 1638)[0m
+[0;32mI (6381) servo_sweep: Angle: 140 deg (duty: 1683)[0m
+[0;32mI (6431) servo_sweep: Angle: 145 deg (duty: 1729)[0m
+[0;32mI (6481) servo_sweep: Angle: 150 deg (duty: 1774)[0m
+[0;32mI (6531) servo_sweep: Angle: 155 deg (duty: 1820)[0m
+[0;32mI (6581) servo_sweep: Angle: 160 deg (duty: 1865)[0m
+[0;32mI (6631) servo_sweep: Angle: 165 deg (duty: 1911)[0m
+[0;32mI (6681) servo_sweep: Angle: 170 deg (duty: 1956)[0m
+[0;32mI (6731) servo_sweep: Angle: 175 deg (duty: 2002)[0m
+[0;32mI (6781) servo_sweep: Angle: 180 deg (duty: 2047)[0m
+[0;32mI (7331) servo_sweep: Angle: 180 deg (duty: 2047)[0m
+[0;32mI (7381) servo_sweep: Angle: 175 deg (duty: 2002)[0m
+[0;32mI (7431) servo_sweep: Angle: 170 deg (duty: 1956)[0m
+[0;32mI (7481) servo_sweep: Angle: 165 deg (duty: 1911)[0m
+[0;32mI (7531) servo_sweep: Angle: 160 deg (duty: 1865)[0m
+[0;32mI (7581) servo_sweep: Angle: 155 deg (duty: 1820)[0m
+[0;32mI (7631) servo_sweep: Angle: 150 deg (duty: 1774)[0m
+[0;32mI (7681) servo_sweep: Angle: 145 deg (duty: 1729)[0m
+[0;32mI (7731) servo_sweep: Angle: 140 deg (duty: 1683)[0m
+[0;32mI (7781) servo_sweep: Angle: 135 deg (duty: 1638)[0m
+[0;32mI (7831) servo_sweep: Angle: 130 deg (duty: 1592)[0m
+[0;32mI (7881) servo_sweep: Angle: 125 deg (duty: 1547)[0m
+[0;32mI (7931) servo_sweep: Angle: 120 deg (duty: 1501)[0m
+[0;32mI (7981) servo_sweep: Angle: 115 deg (duty: 1456)[0m
+[0;32mI (8031) servo_sweep: Angle: 110 deg (duty: 1410)[0m
+[0;32mI (8081) servo_sweep: Angle: 105 deg (duty: 1365)[0m
+[0;32mI (8131) servo_sweep: Angle: 100 deg (duty: 1319)[0m
+[0;32mI (8181) servo_sweep: Angle: 95 deg (duty: 1274)[0m
+[0;32mI (8231) servo_sweep: Angle: 90 deg (duty: 1228)[0m
+[0;32mI (8281) servo_sweep: Angle: 85 deg (duty: 1183)[0m
+[0;32mI (8331) servo_sweep: Angle: 80 deg (duty: 1137)[0m
+[0;32mI (8381) servo_sweep: Angle: 75 deg (duty: 1092)[0m
+[0;32mI (8431) servo_sweep: Angle: 70 deg (duty: 1046)[0m
+[0;32mI (8481) servo_sweep: Angle: 65 deg (duty: 1001)[0m
+[0;32mI (8531) servo_sweep: Angle: 60 deg (duty: 955)[0m
+[0;32mI (8581) servo_sweep: Angle: 55 deg (duty: 910)[0m
+[0;32mI (8631) servo_sweep: Angle: 50 deg (duty: 864)[0m
+[0;32mI (8681) servo_sweep: Angle: 45 deg (duty: 819)[0m
+[0;32mI (8731) servo_sweep: Angle: 40 deg (duty: 773)[0m
+[0;32mI (8781) servo_sweep: Angle: 35 deg (duty: 728)[0m
+[0;32mI (8831) servo_sweep: Angle: 30 deg (duty: 682)[0m
+[0;32mI (8881) servo_sweep: Angle: 25 deg (duty: 637)[0m
+[0;32mI (8931) servo_sweep: Angle: 20 deg (duty: 591)[0m
+[0;32mI (8981) servo_sweep: Angle: 15 deg (duty: 546)[0m
+[0;32mI (9031) servo_sweep: Angle: 10 deg (duty: 500)[0m
+[0;32mI (9081) servo_sweep: Angle: 5 deg (duty: 455)[0m
+[0;32mI (9131) servo_sweep: Angle: 0 deg (duty: 409)[0m
+[0;32mI (9681) servo_sweep: Angle: 0 deg (duty: 409)[0m
+[0;32mI (9731) servo_sweep: Angle: 5 deg (duty: 455)[0m
+[0;32mI (9781) servo_sweep: Angle: 10 deg (duty: 500)[0m
+[0;32mI (9831) servo_sweep: Angle: 15 deg (duty: 546)[0m
+[0;32mI (9881) servo_sweep: Angle: 20 deg (duty: 591)[0m
+[0;32mI (9931) servo_sweep: Angle: 25 deg (duty: 637)[0m
+[0;32mI (9981) servo_sweep: Angle: 30 deg (duty: 682)[0m
+[0;32mI (10031) servo_sweep: Angle: 35 deg (duty: 728)[0m
+[0;32mI (10081) servo_sweep: Angle: 40 deg (duty: 773)[0m
+[0;32mI (10131) servo_sweep: Angle: 45 deg (duty: 819)[0m
+[0;32mI (10181) servo_sweep: Angle: 50 deg (duty: 864)[0m
+[0;32mI (10231) servo_sweep: Angle: 55 deg (duty: 910)[0m
+[0;32mI (10281) servo_sweep: Angle: 60 deg (duty: 955)[0m
+[0;32mI (10331) servo_sweep: Angle: 65 deg (duty: 1001)[0m
+[0;32mI (10381) servo_sweep: Angle: 70 deg (duty: 1046)[0m
+[0;32mI (10431) servo_sweep: Angle: 75 deg (duty: 1092)[0m
+[0;32mI (10481) servo_sweep: Angle: 80 deg (duty: 1137)[0m
+[0;32mI (10531) servo_sweep: Angle: 85 deg (duty: 1183)[0m
+[0;32mI (10581) servo_sweep: Angle: 90 deg (duty: 1228)[0m
+[0;32mI (10631) servo_sweep: Angle: 95 deg (duty: 1274)[0m
+[0;32mI (10681) servo_sweep: Angle: 100 deg (duty: 1319)[0m
+[0;32mI (10731) servo_sweep: Angle: 105 deg (duty: 1365)[0m
+[0;32mI (10781) servo_sweep: Angle: 110 deg (duty: 1410)[0m
+[0;32mI (10831) servo_sweep: Angle: 115 deg (duty: 1456)[0m
+[0;32mI (10881) servo_sweep: Angle: 120 deg (duty: 1501)[0m
+[0;32mI (10931) servo_sweep: Angle: 125 deg (duty: 1547)[0m
+[0;32mI (10981) servo_sweep: Angle: 130 deg (duty: 1592)[0m
+[0;32mI (11031) servo_sweep: Angle: 135 deg (duty: 1638)[0m
+[0;32mI (11081) servo_sweep: Angle: 140 deg (duty: 1683)[0m
+[0;32mI (11131) servo_sweep: Angle: 145 deg (duty: 1729)[0m
+[0;32mI (11181) servo_sweep: Angle: 150 deg (duty: 1774)[0m
+[0;32mI (11231) servo_sweep: Angle: 155 deg (duty: 1820)[0m
+[0;32mI (11281) servo_sweep: Angle: 160 deg (duty: 1865)[0m
+[0;32mI (11331) servo_sweep: Angle: 165 deg (duty: 1911)[0m
+[0;32mI (11381) servo_sweep: Angle: 170 deg (duty: 1956)[0m
+[0;32mI (11431) servo_sweep: Angle: 175 deg (duty: 2002)[0m
+[0;32mI (11481) servo_sweep: Angle: 180 deg (duty: 2047)[0m
+[0;32mI (12031) servo_sweep: Angle: 180 deg (duty: 2047)[0m
+[0;32mI (12081) servo_sweep: Angle: 175 deg (duty: 2002)[0m
+[0;32mI (12131) servo_sweep: Angle: 170 deg (duty: 1956)[0m
+[0;32mI (12181) servo_sweep: Angle: 165 deg (duty: 1911)[0m
+[0;32mI (12231) servo_sweep: Angle: 160 deg (duty: 1865)[0m
+[0;32mI (12281) servo_sweep: Angle: 155 deg (duty: 1820)[0m
+[0;32mI (12331) servo_sweep: Angle: 150 deg (duty: 1774)[0m
+[0;32mI (12381) servo_sweep: Angle: 145 deg (duty: 1729)[0m
+[0;32mI (12431) servo_sweep: Angle: 140 deg (duty: 1683)[0m
+[0;32mI (12481) servo_sweep: Angle: 135 deg (duty: 1638)[0m
+[0;32mI (12531) servo_sweep: Angle: 130 deg (duty: 1592)[0m
+[0;32mI (12581) servo_sweep: Angle: 125 deg (duty: 1547)[0m
+[0;32mI (12631) servo_sweep: Angle: 120 deg (duty: 1501)[0m
+[0;32mI (12681) servo_sweep: Angle: 115 deg (duty: 1456)[0m
+[0;32mI (12731) servo_sweep: Angle: 110 deg (duty: 1410)[0m
+[0;32mI (12781) servo_sweep: Angle: 105 deg (duty: 1365)[0m
+[0;32mI (12831) servo_sweep: Angle: 100 deg (duty: 1319)[0m
+[0;32mI (12881) servo_sweep: Angle: 95 deg (duty: 1274)[0m
+[0;32mI (12931) servo_sweep: Angle: 90 deg (duty: 1228)[0m
+[0;32mI (12981) servo_sweep: Angle: 85 deg (duty: 1183)[0m
+[0;32mI (13031) servo_sweep: Angle: 80 deg (duty: 1137)[0m
+[0;32mI (13081) servo_sweep: Angle: 75 deg (duty: 1092)[0m
+[0;32mI (13131) servo_sweep: Angle: 70 deg (duty: 1046)[0m
+[0;32mI (13181) servo_sweep: Angle: 65 deg (duty: 1001)[0m
+[0;32mI (13231) servo_sweep: Angle: 60 deg (duty: 955)[0m
+[0;32mI (13281) servo_sweep: Angle: 55 deg (duty: 910)[0m
+[0;32mI (13331) servo_sweep: Angle: 50 deg (duty: 864)[0m
+[0;32mI (13381) servo_sweep: Angle: 45 deg (duty: 819)[0m
+[0;32mI (13431) servo_sweep: Angle: 40 deg (duty: 773)[0m
+[0;32mI (13481) servo_sweep: Angle: 35 deg (duty: 728)[0m
+[0;32mI (13531) servo_sweep: Angle: 30 deg (duty: 682)[0m
+[0;32mI (13581) servo_sweep: Angle: 25 deg (duty: 637)[0m
+[0;32mI (13631) servo_sweep: Angle: 20 deg (duty: 591)[0m
+[0;32mI (13681) servo_sweep: Angle: 15 deg (duty: 546)[0m
+[0;32mI (13731) servo_sweep: Angle: 10 deg (duty: 500)[0m
+[0;32mI (13781) servo_sweep: Angle: 5 deg (duty: 455)[0m
+[0;32mI (13831) servo_sweep: Angle: 0 deg (duty: 409)[0m
+[0;32mI (14381) servo_sweep: Angle: 0 deg (duty: 409)[0m
+[0;32mI (14431) servo_sweep: Angle: 5 deg (duty: 455)[0m
+[0;32mI (14481) servo_sweep: Angle: 10 deg (duty: 500)[0m
+[0;32mI (14531) servo_sweep: Angle: 15 deg (duty: 546)[0m
+[0;32mI (14581) servo_sweep: Angle: 20 deg (duty: 591)[0m
+[0;32mI (14631) servo_sweep: Angle: 25 deg (duty: 637)[0m
+[0;32mI (14681) servo_sweep: Angle: 30 deg (duty: 682)[0m
+[0;32mI (14731) servo_sweep: Angle: 35 deg (duty: 728)[0m
+[0;32mI (14781) servo_sweep: Angle: 40 deg (duty: 773)[0m
+[0;32mI (14831) servo_sweep: Angle: 45 deg (duty: 819)[0m
+[0;32mI (14881) servo_sweep: Angle: 50 deg (duty: 864)[0m
+[0;32mI (14931) servo_sweep: Angle: 55 deg (duty: 910)[0m
+[0;32mI (14981) servo_sweep: Angle: 60 deg (duty: 955)[0m
+[0;32mI (15031) servo_sweep: Angle: 65 deg (duty: 1001)[0m
+[0;32mI (15081) servo_sweep: Angle: 70 deg (duty: 1046)[0m
+[0;32mI (15131) servo_sweep: Angle: 75 deg (duty: 1092)[0m
+[0;32mI (15181) servo_sweep: Angle: 80 deg (duty: 1137)[0m
+[0;32mI (15231) servo_sweep: Angle: 85 deg (duty: 1183)[0m
+[0;32mI (15281) servo_sweep: Angle: 90 deg (duty: 1228)[0m
+[0;32mI (15331) servo_sweep: Angle: 95 deg (duty: 1274)[0m
+[0;32mI (15381) servo_sweep: Angle: 100 deg (duty: 1319)[0m
+[0;32mI (15431) servo_sweep: Angle: 105 deg (duty: 1365)[0m
+[0;32mI (15481) servo_sweep: Angle: 110 deg (duty: 1410)[0m
+[0;32mI (15531) servo_sweep: Angle: 115 deg (duty: 1456)[0m
+[0;32mI (15581) servo_sweep: Angle: 120 deg (duty: 1501)[0m
+[0;32mI (15631) servo_sweep: Angle: 125 deg (duty: 1547)[0m
+[0;32mI (15681) servo_sweep: Angle: 130 deg (duty: 1592)[0m
+[0;32mI (15731) servo_sweep: Angle: 135 deg (duty: 1638)[0m
+[0;32mI (15781) servo_sweep: Angle: 140 deg (duty: 1683)[0m
+[0;32mI (15831) servo_sweep: Angle: 145 deg (duty: 1729)[0m
+[0;32mI (15881) servo_sweep: Angle: 150 deg (duty: 1774)[0m
+[0;32mI (15931) servo_sweep: Angle: 155 deg (duty: 1820)[0m
+[0;32mI (15981) servo_sweep: Angle: 160 deg (duty: 1865)[0m
+[0;32mI (16031) servo_sweep: Angle: 165 deg (duty: 1911)[0m
+[0;32mI (16081) servo_sweep: Angle: 170 deg (duty: 1956)[0m
+[0;32mI (16131) servo_sweep: Angle: 175 deg (duty: 2002)[0m
+[0;32mI (16181) servo_sweep: Angle: 180 deg (duty: 2047)[0m
+[0;32mI (16731) servo_sweep: Angle: 180 deg (duty: 2047)[0m
+[0;32mI (16781) servo_sweep: Angle: 175 deg (duty: 2002)[0m
+[0;32mI (16831) servo_sweep: Angle: 170 deg (duty: 1956)[0m
+[0;32mI (16881) servo_sweep: Angle: 165 deg (duty: 1911)[0m
+[0;32mI (16931) servo_sweep: Angle: 160 deg (duty: 1865)[0m
+[0;32mI (16981) servo_sweep: Angle: 155 deg (duty: 1820)[0m
+[0;32mI (17031) servo_sweep: Angle: 150 deg (duty: 1774)[0m
+[0;32mI (17081) servo_sweep: Angle: 145 deg (duty: 1729)[0m
+[0;32mI (17131) servo_sweep: Angle: 140 deg (duty: 1683)[0m
+[0;32mI (17181) servo_sweep: Angle: 135 deg (duty: 1638)[0m
+[0;32mI (17231) servo_sweep: Angle: 130 deg (duty: 1592)[0m
+[0;32mI (17281) servo_sweep: Angle: 125 deg (duty: 1547)[0m
+[0;32mI (17331) servo_sweep: Angle: 120 deg (duty: 1501)[0m
+[0;32mI (17381) servo_sweep: Angle: 115 deg (duty: 1456)[0m
+[0;32mI (17431) servo_sweep: Angle: 110 deg (duty: 1410)[0m
+[0;32mI (17481) servo_sweep: Angle: 105 deg (duty: 1365)[0m
+[0;32mI (17531) servo_sweep: Angle: 100 deg (duty: 1319)[0m
+[0;32mI (17581) servo_sweep: Angle: 95 deg (duty: 1274)[0m
+[0;32mI (17631) servo_sweep: Angle: 90 deg (duty: 1228)[0m
+[0;32mI (17681) servo_sweep: Angle: 85 deg (duty: 1183)[0m
+[0;32mI (17731) servo_sweep: Angle: 80 deg (duty: 1137)[0m
+[0;32mI (17781) servo_sweep: Angle: 75 deg (duty: 1092)[0m
+[0;32mI (17831) servo_sweep: Angle: 70 deg (duty: 1046)[0m
+[0;32mI (17881) servo_sweep: Angle: 65 deg (duty: 1001)[0m
+[0;32mI (17931) servo_sweep: Angle: 60 deg (duty: 955)[0m
+[0;32mI (17981) servo_sweep: Angle: 55 deg (duty: 910)[0m
+[0;32mI (18031) servo_sweep: Angle: 50 deg (duty: 864)[0m
+[0;32mI (18081) servo_sweep: Angle: 45 deg (duty: 819)[0m
+[0;32mI (18131) servo_sweep: Angle: 40 deg (duty: 773)[0m
+[0;32mI (18181) servo_sweep: Angle: 35 deg (duty: 728)[0m
+[0;32mI (18231) servo_sweep: Angle: 30 deg (duty: 682)[0m
+[0;32mI (18281) servo_sweep: Angle: 25 deg (duty: 637)[0m
+[0;32mI (18331) servo_sweep: Angle: 20 deg (duty: 591)[0m
+[0;32mI (18381) servo_sweep: Angle: 15 deg (duty: 546)[0m
+[0;32mI (18431) servo_sweep: Angle: 10 deg (duty: 500)[0m
+[0;32mI (18481) servo_sweep: Angle: 5 deg (duty: 455)[0m
+[0;32mI (18531) servo_sweep: Angle: 0 deg (duty: 409)[0m
+[0;32mI (19081) servo_sweep: Angle: 0 deg (duty: 409)[0m
+[0;32mI (19131) servo_sweep: Angle: 5 deg (duty: 455)[0m
+[0;32mI (19181) servo_sweep: Angle: 10 deg (duty: 500)[0m
+[0;32mI (19231) servo_sweep: Angle: 15 deg (duty: 546)[0m
+[0;32mI (19281) servo_sweep: Angle: 20 deg (duty: 591)[0m
+[0;32mI (19331) servo_sweep: Angle: 25 deg (duty: 637)[0m
+[0;32mI (19381) servo_sweep: Angle: 30 deg (duty: 682)[0m
+[0;32mI (19431) servo_sweep: Angle: 35 deg (duty: 728)[0m
+[0;32mI (19481) servo_sweep: Angle: 40 deg (duty: 773)[0m
+[0;32mI (19531) servo_sweep: Angle: 45 deg (duty: 819)[0m
+[0;32mI (19581) servo_sweep: Angle: 50 deg (duty: 864)[0m
+[0;32mI (19631) servo_sweep: Angle: 55 deg (duty: 910)[0m
+[0;32mI (19681) servo_sweep: Angle: 60 deg (duty: 955)[0m
+[0;32mI (19731) servo_sweep: Angle: 65 deg (duty: 1001)[0m
+[0;32mI (19781) servo_sweep: Angle: 70 deg (duty: 1046)[0m
+[0;32mI (19831) servo_sweep: Angle: 75 deg (duty: 1092)[0m
+[0;32mI (19881) servo_sweep: Angle: 80 deg (duty: 1137)[0m
+[0;32mI (19931) servo_sweep: Angle: 85 deg (duty: 1183)[0m
+[0;32mI (19981) servo_sweep: Angle: 90 deg (duty: 1228)[0m
+[0;32mI (20031) servo_sweep: Angle: 95 deg (duty: 1274)[0m
+[0;32mI (20081) servo_sweep: Angle: 100 deg (duty: 1319)[0m
+[0;32mI (20131) servo_sweep: Angle: 105 deg (duty: 1365)[0m
+[0;32mI (20181) servo_sweep: Angle: 110 deg (duty: 1410)[0m
+[0;32mI (20231) servo_sweep: Angle: 115 deg (duty: 1456)[0m
+[0;32mI (20281) servo_sweep: Angle: 120 deg (duty: 1501)[0m
+[0;32mI (20331) servo_sweep: Angle: 125 deg (duty: 1547)[0m
+[0;32mI (20381) servo_sweep: Angle: 130 deg (duty: 1592)[0m
+[0;32mI (20431) servo_sweep: Angle: 135 deg (duty: 1638)[0m
+[0;32mI (20481) servo_sweep: Angle: 140 deg (duty: 1683)[0m
+[0;32mI (20531) servo_sweep: Angle: 145 deg (duty: 1729)[0m
+[0;32mI (20581) servo_sweep: Angle: 150 deg (duty: 1774)[0m
+[0;32mI (20631) servo_sweep: Angle: 155 deg (duty: 1820)[0m
+[0;32mI (20681) servo_sweep: Angle: 160 deg (duty: 1865)[0m
+[0;32mI (20731) servo_sweep: Angle: 165 deg (duty: 1911)[0m
+[0;32mI (20781) servo_sweep: Angle: 170 deg (duty: 1956)[0m
+[0;32mI (20831) servo_sweep: Angle: 175 deg (duty: 2002)[0m
+[0;32mI (20881) servo_sweep: Angle: 180 deg (duty: 2047)[0m
+[0;32mI (21431) servo_sweep: Angle: 180 deg (duty: 2047)[0m
+[0;32mI (21481) servo_sweep: Angle: 175 deg (duty: 2002)[0m
+[0;32mI (21531) servo_sweep: Angle: 170 deg (duty: 1956)[0m
+[0;32mI (21581) servo_sweep: Angle: 165 deg (duty: 1911)[0m
+[0;32mI (21631) servo_sweep: Angle: 160 deg (duty: 1865)[0m
+[0;32mI (21681) servo_sweep: Angle: 155 deg (duty: 1820)[0m
+[0;32mI (21731) servo_sweep: Angle: 150 deg (duty: 1774)[0m
+[0;32mI (21781) servo_sweep: Angle: 145 deg (duty: 1729)[0m
+[0;32mI (21831) servo_sweep: Angle: 140 deg (duty: 1683)[0m
+[0;32mI (21881) servo_sweep: Angle: 135 deg (duty: 1638)[0m
+[0;32mI (21931) servo_sweep: Angle: 130 deg (duty: 1592)[0m
+[0;32mI (21981) servo_sweep: Angle: 125 deg (duty: 1547)[0m
+[0;32mI (22031) servo_sweep: Angle: 120 deg (duty: 1501)[0m
+[0;32mI (22081) servo_sweep: Angle: 115 deg (duty: 1456)[0m
+[0;32mI (22131) servo_sweep: Angle: 110 deg (duty: 1410)[0m
+[0;32mI (22181) servo_sweep: Angle: 105 deg (duty: 1365)[0m
+[0;32mI (22231) servo_sweep: Angle: 100 deg (duty: 1319)[0m
+[0;32mI (22281) servo_sweep: Angle: 95 deg (duty: 1274)[0m
+[0;32mI (22331) servo_sweep: Angle: 90 deg (duty: 1228)[0m
+[0;32mI (22381) servo_sweep: Angle: 85 deg (duty: 1183)[0m
+[0;32mI (22431) servo_sweep: Angle: 80 deg (duty: 1137)[0m
+[0;32mI (22481) servo_sweep: Angle: 75 deg (duty: 1092)[0m
+[0;32mI (22531) servo_sweep: Angle: 70 deg (duty: 1046)[0m
+[0;32mI (22581) servo_sweep: Angle: 65 deg (duty: 1001)[0m
+[0;32mI (22631) servo_sweep: Angle: 60 deg (duty: 955)[0m
+[0;32mI (22681) servo_sweep: Angle: 55 deg (duty: 910)[0m
+[0;32mI (22731) servo_sweep: Angle: 50 deg (duty: 864)[0m
+[0;32mI (22781) servo_sweep: Angle: 45 deg (duty: 819)[0m
+[0;32mI (22831) servo_sweep: Angle: 40 deg (duty: 773)[0m
+[0;32mI (22881) servo_sweep: Angle: 35 deg (duty: 728)[0m
+[0;32mI (22931) servo_sweep: Angle: 30 deg (duty: 682)[0m
+[0;32mI (22981) servo_sweep: Angle: 25 deg (duty: 637)[0m
+[0;32mI (23031) servo_sweep: Angle: 20 deg (duty: 591)[0m
+[0;32mI (23081) servo_sweep: Angle: 15 deg (duty: 546)[0m
+[0;32mI (23131) servo_sweep: Angle: 10 deg (duty: 500)[0m
+[0;32mI (23181) servo_sweep: Angle: 5 deg (duty: 455)[0m
+[0;32mI (23231) servo_sweep: Angle: 0 deg (duty: 409)[0m
+[0;32mI (23781) servo_sweep: Angle: 0 deg (duty: 409)[0m
+[0;32mI (23831) servo_sweep: Angle: 5 deg (duty: 455)[0m
+[0;32mI (23881) servo_sweep: Angle: 10 deg (duty: 500)[0m
+[0;32mI (23931) servo_sweep: Angle: 15 deg (duty: 546)[0m
+[0;32mI (23981) servo_sweep: Angle: 20 deg (duty: 591)[0m
+[0;32mI (24031) servo_sweep: Angle: 25 deg (duty: 637)[0m
+[0;32mI (24081) servo_sweep: Angle: 30 deg (duty: 682)[0m
+[0;32mI (24131) servo_sweep: Angle: 35 deg (duty: 728)[0m
+[0;32mI (24181) servo_sweep: Angle: 40 deg (duty: 773)[0m
+[0;32mI (24231) servo_sweep: Angle: 45 deg (duty: 819)[0m
+[0;32mI (24281) servo_sweep: Angle: 50 deg (duty: 864)[0m
+[0;32mI (24331) servo_sweep: Angle: 55 deg (duty: 910)[0m
+[0;32mI (24381) servo_sweep: Angle: 60 deg (duty: 955)[0m
