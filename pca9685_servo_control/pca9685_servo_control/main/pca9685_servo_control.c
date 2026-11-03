@@ -1,9 +1,11 @@
+
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/i2c.h"
 #include "esp_log.h"
 
+/* ======================= 硬件配置 ======================= */
 #define I2C_MASTER_SDA_IO   GPIO_NUM_8
 #define I2C_MASTER_SCL_IO   GPIO_NUM_9
 #define PCA9685_I2C_ADDR    0x40
@@ -12,6 +14,7 @@
 
 static const char *TAG = "PCA9685";
 
+/* ======================= PCA9685 寄存器 ======================= */
 #define PCA9685_MODE1       0x00
 #define PCA9685_PRESCALE    0xFE
 #define PCA9685_LED0_ON_L   0x06
@@ -19,71 +22,70 @@ static const char *TAG = "PCA9685";
 #define MODE1_AI            (1 << 5)
 #define MODE1_RESTART       (1 << 7)
 
+/* =========================================================================
+ *  ★ 舵机型号（拆开语义，避免冲突）★
+ * ========================================================================= */
 typedef enum {
-    SERVO_TYPE_SF006 = 0,
-    SERVO_TYPE_SG90,
+    SERVO_TYPE_SF006_180 = 0,   /* 180° 位置舵机（SF006）        */
+    SERVO_TYPE_SG90_180,        /* 180° 位置舵机（SG90 位置版）  */
+    SERVO_TYPE_SG90_360,        /* 360° 连续旋转舵机（SG90 连续版）*/
 } servo_type_t;
 
 /* =========================================================================
- * ★ 终极校准区 ★
- * -------------------------------------------------------------------------
- * PCA9685 在 50Hz 下的精度是 4.875us/格。
- * 如果你发现 STOP 时舵机依然慢速转动，请以 5 为单位修改下面的值。
+ *  ★ 控制模式 ★
  * ========================================================================= */
-#define SG90_STOP_PULSE_US  1630
+typedef enum {
+    SERVO_MODE_POSITION = 0,    /* 位置模式：param1 = 目标角度 0~180           */
+                                /* 仅 SERVO_TYPE_*_180 可用                    */
+    SERVO_MODE_SPEED_TIME,      /* 速度+时间模式：param1 = 速度 -100~100       */
+                                /*                param2 = 运行时长(ms)        */
+                                /* 仅 SERVO_TYPE_SG90_360 可用                 */
+    SERVO_MODE_SPEED_ANGLE,     /* 速度+角度模式：param1 = 速度 6~20（带符号） */
+                                /*                param2 = 目标角度(度)        */
+                                /* 仅 SERVO_TYPE_SG90_360 可用                 */
+} servo_mode_t;
 
-/* ============================================================
- * SG90 固定角度旋转控制
- *   基于实测「速度 → 角速度」表 + 分段线性插值
- *   当前表数据：通道 0 实测（10s 转的圈数折算）
- *   后续扩充：只需往表里加行，按 speed 升序，无需改函数
- * ============================================================ */
+/* ======================= 校准参数 ======================= */
+/* 180° 位置舵机：0° -> 500us，180° -> 2500us
+ * 若实测打限位，可改窄到 700~2300 */
+#define SERVO_180_PULSE_MIN_US   500
+#define SERVO_180_PULSE_MAX_US   2500
 
-#define SG90_MIN_SPEED      6       // 标定表最低速度
-#define SG90_MAX_SPEED      20      // 当前实测最高速度，后续补表后改大
+/* 360° 连续旋转舵机：1630us 停点，实测停不住就微调 */
+#define SG90_STOP_PULSE_US       1630
 
-/* ---- 补偿参数（经验初值，实测后再微调） ---- */
-#define SG90_ACCEL_COMP_MS  0     // 启动加速补偿  单位ms
-#define SG90_COAST_DEG      0.0f   // 停止滑行补偿  单位度
+/* SPEED_TIME 模式：每 1% 速度偏移 10us */
+#define SG90_360_PULSE_PER_PCT   10
 
-/* 时间修正系数：单次短动作平均效率只有稳态的 ~82%
- * 实测：90° 实际/理论=0.778，360° 实际/理论=0.833
- * 取 1/0.82 ≈ 1.22，后续微调 */
-#define SG90_TIME_CORRECTION   1.22f
+/* SPEED_ANGLE 模式：查表速度范围 */
+#define SG90_MIN_SPEED           6
+#define SG90_MAX_SPEED           20
 
+/* SPEED_ANGLE 模式：时间补偿 */
+#define SG90_ACCEL_COMP_MS       0
+#define SG90_COAST_DEG           0.0f
+#define SG90_TIME_CORRECTION     1.22f
 
+/* ======================= 角速度表 ======================= */
 typedef struct {
-    int   speed;    // 速度绝对值
-    float omega;    // 角速度 °/s
+    int   speed;
+    float omega;
 } omega_point_t;
 
-/* ---- 正转实测表（speed 必须升序）---- */
 static const omega_point_t g_fwd_omega_table[] = {
-    {  6, 142.0f },
-    {  8, 154.0f },
-    { 10, 173.0f },
-    { 15, 214.0f },
-    { 20, 220.0f },
-    /* 补齐 30/40/50/60/70 后在这里继续加 */
+    {  6, 142.0f }, {  8, 154.0f }, { 10, 173.0f }, { 15, 214.0f }, { 20, 220.0f },
 };
 #define FWD_TABLE_LEN (sizeof(g_fwd_omega_table) / sizeof(g_fwd_omega_table[0]))
 
-/* ---- 反转实测表（暂用正转值占位，实测后替换）---- */
 static const omega_point_t g_rev_omega_table[] = {
-    {  6, 142.0f },
-    {  8, 154.0f },
-    { 10, 173.0f },
-    { 15, 214.0f },
-    { 20, 220.0f },
+    {  6, 142.0f }, {  8, 154.0f }, { 10, 173.0f }, { 15, 214.0f }, { 20, 220.0f },
 };
 #define REV_TABLE_LEN (sizeof(g_rev_omega_table) / sizeof(g_rev_omega_table[0]))
 
-/* 分段线性插值：任意 speed 都能算，超范围自动 clamp */
 static float omega_lookup(const omega_point_t *tab, int len, int speed)
 {
-    if (speed <= tab[0].speed)         return tab[0].omega;
-    if (speed >= tab[len - 1].speed)   return tab[len - 1].omega;
-
+    if (speed <= tab[0].speed)       return tab[0].omega;
+    if (speed >= tab[len - 1].speed) return tab[len - 1].omega;
     for (int i = 0; i < len - 1; i++) {
         if (speed >= tab[i].speed && speed <= tab[i + 1].speed) {
             float t = (float)(speed - tab[i].speed)
@@ -94,12 +96,7 @@ static float omega_lookup(const omega_point_t *tab, int len, int speed)
     return tab[len - 1].omega;
 }
 
-
-
-
-/* =========================================================================
- * 底层写入函数
- * ========================================================================= */
+/* ======================= 底层 I2C / PCA9685 ======================= */
 static esp_err_t pca9685_write_reg(uint8_t reg, uint8_t data)
 {
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
@@ -116,25 +113,17 @@ static esp_err_t pca9685_write_reg(uint8_t reg, uint8_t data)
 static esp_err_t pca9685_init(void)
 {
     if (pca9685_write_reg(PCA9685_MODE1, MODE1_SLEEP) != ESP_OK) return ESP_FAIL;
-    if (pca9685_write_reg(PCA9685_PRESCALE, 0x79) != ESP_OK) return ESP_FAIL; // 50Hz
-    uint8_t mode1 = MODE1_AI | MODE1_RESTART;
-    if (pca9685_write_reg(PCA9685_MODE1, mode1) != ESP_OK) return ESP_FAIL;
+    if (pca9685_write_reg(PCA9685_PRESCALE, 0x79) != ESP_OK) return ESP_FAIL;
+    if (pca9685_write_reg(PCA9685_MODE1, MODE1_AI | MODE1_RESTART) != ESP_OK) return ESP_FAIL;
     vTaskDelay(pdMS_TO_TICKS(10));
     return ESP_OK;
 }
 
-/* 
- * 精确计算：50.08Hz 频率下，1 tick = 4.875us
- */
 static void pca9685_set_pulse_us(uint8_t channel, uint16_t pulse_us)
 {
     if (channel > 15) return;
-
-    // 使用真实的 4.875us 进行浮点运算，四舍五入到最近的整数 tick
     uint16_t ticks = (uint16_t)((pulse_us / 4.875f) + 0.5f);
-
     if (ticks > 4095) ticks = 4095;
-
     uint8_t reg = PCA9685_LED0_ON_L + 4 * channel;
     pca9685_write_reg(reg + 0, 0);
     pca9685_write_reg(reg + 1, 0);
@@ -142,127 +131,194 @@ static void pca9685_set_pulse_us(uint8_t channel, uint16_t pulse_us)
     pca9685_write_reg(reg + 3, (ticks >> 8) & 0x0F);
 }
 
-
-/**
- * @brief  让指定通道的 SG90 按速度旋转指定角度后自动停止
- * @param  channel     PCA9685 通道（0~15）
- * @param  speed       有符号速度：正=正转，负=反转；绝对值超出 [6,20] 会被 clamp
- * @param  angle_deg   目标角度（度），必须 > 0
- * @return ESP_OK / ESP_ERR_INVALID_ARG
- */
-static esp_err_t sg90_rotate_angle(uint8_t channel, int speed, float angle_deg)
+/* =========================================================================
+ *  内部实现 1：180° 位置舵机（SF006 / SG90_180 共用）
+ * ========================================================================= */
+static esp_err_t internal_servo_180_set_angle(uint8_t channel, float angle,
+                                              const char *model)
 {
-    if (channel > 15) {
-        ESP_LOGE(TAG, "ROTATE: invalid channel %d", channel);
-        return ESP_ERR_INVALID_ARG;
+    if (angle < 0.0f)   angle = 0.0f;
+    if (angle > 180.0f) angle = 180.0f;
+
+    uint16_t pulse_us = SERVO_180_PULSE_MIN_US
+                      + (uint16_t)((SERVO_180_PULSE_MAX_US - SERVO_180_PULSE_MIN_US)
+                                   * angle / 180.0f + 0.5f);
+    pca9685_set_pulse_us(channel, pulse_us);
+
+    ESP_LOGI(TAG, "CH%02d [%s] POSITION -> %5.1f° (%uus)",
+             channel, model, angle, pulse_us);
+    return ESP_OK;
+}
+
+/* =========================================================================
+ *  内部实现 2：360° 舵机 速度 + 时间
+ * ========================================================================= */
+static esp_err_t internal_servo_360_speed_time(uint8_t channel, int speed,
+                                               uint32_t duration_ms)
+{
+    if (speed >  100) speed =  100;
+    if (speed < -100) speed = -100;
+    if (speed >= -5 && speed <= 5) speed = 0;
+
+    uint16_t pulse_us;
+    if (speed == 0) {
+        pulse_us = SG90_STOP_PULSE_US;
+    } else {
+        int32_t p = (int32_t)SG90_STOP_PULSE_US + speed * SG90_360_PULSE_PER_PCT;
+        if (p < 500)  p = 500;
+        if (p > 2500) p = 2500;
+        pulse_us = (uint16_t)p;
     }
+    pca9685_set_pulse_us(channel, pulse_us);
+
+    if (speed == 0) {
+        ESP_LOGI(TAG, "CH%02d [SG90_360] SPEED_TIME -> STOP (%uus)", channel, pulse_us);
+    } else {
+        ESP_LOGI(TAG, "CH%02d [SG90_360] SPEED_TIME -> %s %d%% (%uus, %lums)",
+                 channel, speed > 0 ? "FWD" : "REV",
+                 speed > 0 ? speed : -speed, pulse_us,
+                 (unsigned long)duration_ms);
+    }
+
+    if (duration_ms > 0) {
+        vTaskDelay(pdMS_TO_TICKS(duration_ms));
+        pca9685_set_pulse_us(channel, SG90_STOP_PULSE_US);
+        ESP_LOGI(TAG, "CH%02d [SG90_360] SPEED_TIME -> STOP (time up)", channel);
+    }
+    return ESP_OK;
+}
+
+/* =========================================================================
+ *  内部实现 3：360° 舵机 速度 + 角度（查表算时间）
+ * ========================================================================= */
+static esp_err_t internal_servo_360_speed_angle(uint8_t channel, int speed,
+                                                float angle_deg)
+{
     if (angle_deg <= 0.0f) {
-        ESP_LOGE(TAG, "ROTATE: invalid angle %.1f", angle_deg);
+        ESP_LOGE(TAG, "SPEED_ANGLE: invalid angle %.1f", angle_deg);
         return ESP_ERR_INVALID_ARG;
     }
 
-    /* 1. 拆方向与速度绝对值 */
-    int dir      = (speed >= 0) ? 1 : -1;
+    int dir       = (speed >= 0) ? 1 : -1;
     int abs_speed = (speed >= 0) ? speed : -speed;
 
-    /* 2. clamp 到标定范围 */
-    if (abs_speed < SG90_MIN_SPEED) {
-        ESP_LOGW(TAG, "ROTATE: speed %d < min %d, clamp",
-                 abs_speed, SG90_MIN_SPEED);
-        abs_speed = SG90_MIN_SPEED;
-    }
-    if (abs_speed > SG90_MAX_SPEED) {
-        ESP_LOGW(TAG, "ROTATE: speed %d > max %d, clamp",
-                 abs_speed, SG90_MAX_SPEED);
-        abs_speed = SG90_MAX_SPEED;
-    }
+    if (abs_speed < SG90_MIN_SPEED) abs_speed = SG90_MIN_SPEED;
+    if (abs_speed > SG90_MAX_SPEED) abs_speed = SG90_MAX_SPEED;
 
-    /* 3. 查表得角速度 */
     const omega_point_t *tab = (dir > 0) ? g_fwd_omega_table : g_rev_omega_table;
     int   len   = (dir > 0) ? FWD_TABLE_LEN : REV_TABLE_LEN;
     float omega = omega_lookup(tab, len, abs_speed);
 
-    /* 4. 计算时间：目标角度时间 + 加速补偿 - 滑行补偿 */
-    float t_rotate_ms = angle_deg / omega * 1000.0f * SG90_TIME_CORRECTION;   // ← 乘系数
+    float t_rotate_ms = angle_deg / omega * 1000.0f * SG90_TIME_CORRECTION;
     float t_coast_ms  = SG90_COAST_DEG / omega * 1000.0f;
     float t_total_ms  = t_rotate_ms + SG90_ACCEL_COMP_MS - t_coast_ms;
     if (t_total_ms < 10.0f) t_total_ms = 10.0f;
 
-    /* 5. 脉宽安全检查 */
     int32_t pulse_us = SG90_STOP_PULSE_US + dir * abs_speed * 10;
     if (pulse_us < 500 || pulse_us > 2500) {
-        ESP_LOGE(TAG, "ROTATE: unsafe pulse %ldus", (long)pulse_us);
+        ESP_LOGE(TAG, "SPEED_ANGLE: unsafe pulse %ldus", (long)pulse_us);
         return ESP_ERR_INVALID_ARG;
     }
 
-    /* 6. 执行 */
-    ESP_LOGI(TAG, "ROTATE CH%d | %s spd=%d ω=%.1f°/s ang=%.1f° t=%.0fms pulse=%ldus",
+    ESP_LOGI(TAG, "CH%02d [SG90_360] SPEED_ANGLE -> %s spd=%d ω=%.1f°/s ang=%.1f° t=%.0fms",
              channel, dir > 0 ? "FWD" : "REV", abs_speed, omega,
-             angle_deg, t_total_ms, (long)pulse_us);
+             angle_deg, t_total_ms);
 
     pca9685_set_pulse_us(channel, (uint16_t)pulse_us);
     vTaskDelay(pdMS_TO_TICKS((uint32_t)(t_total_ms + 0.5f)));
     pca9685_set_pulse_us(channel, SG90_STOP_PULSE_US);
-
-    ESP_LOGI(TAG, "ROTATE CH%d done", channel);
     return ESP_OK;
 }
 
-
-static void servo_ctrl(uint8_t channel, servo_type_t type, int param1, int param2)
+/* =========================================================================
+ *  ★★★ 统一舵机控制入口 ★★★
+ * -------------------------------------------------------------------------
+ * @param channel  PCA9685 通道 0~15
+ * @param type     舵机型号
+ *                   SERVO_TYPE_SF006_180  : 180° 位置舵机
+ *                   SERVO_TYPE_SG90_180   : 180° 位置舵机
+ *                   SERVO_TYPE_SG90_360   : 360° 连续旋转舵机
+ * @param mode     控制模式
+ *                   SERVO_MODE_POSITION    : 位置（仅 180° 型）
+ *                   SERVO_MODE_SPEED_TIME  : 速度+时间（仅 360° 型）
+ *                   SERVO_MODE_SPEED_ANGLE : 速度+角度（仅 360° 型）
+ * @param param1   含义见下
+ * @param param2   含义见下
+ *
+ * param 语义速查：
+ * ┌──────────────────┬──────────────┬────────────────────────────┐
+ * │ 型号 / 模式       │ param1        │ param2                     │
+ * ├──────────────────┼──────────────┼────────────────────────────┤
+ * │ *_180 / POSITION │ 角度 0~180    │ 忽略                       │
+ * │ SG90_360 / SPEED_TIME  │ 速度 -100~100 │ 运行时长(ms)，0=持续转    │
+ * │ SG90_360 / SPEED_ANGLE │ 速度 -20~20   │ 目标角度(度)              │
+ * └──────────────────┴──────────────┴────────────────────────────┘
+ *
+ * @return ESP_OK / ESP_ERR_INVALID_ARG
+ * ========================================================================= */
+esp_err_t servo_control(uint8_t channel, servo_type_t type, servo_mode_t mode,
+                        float param1, float param2)
 {
-    if (channel > 15) return;
+    if (channel > 15) {
+        ESP_LOGE(TAG, "invalid channel %d", channel);
+        return ESP_ERR_INVALID_ARG;
+    }
 
-    if (type == SERVO_TYPE_SF006) {
-        int angle = param1;
-        if (angle < 0)   angle = 0;
-        if (angle > 180) angle = 180;
+    /* ---- 180° 位置舵机 ---- */
+    if (type == SERVO_TYPE_SF006_180 || type == SERVO_TYPE_SG90_180) {
+        if (mode != SERVO_MODE_POSITION) {
+            ESP_LOGE(TAG, "type=%d only supports SERVO_MODE_POSITION", type);
+            return ESP_ERR_INVALID_ARG;
+        }
+        const char *name = (type == SERVO_TYPE_SF006_180) ? "SF006" : "SG90_180";
+        return internal_servo_180_set_angle(channel, param1, name);
+    }
 
-        uint16_t pulse_us = 500 + (uint16_t)((2500 - 500) * angle / 180.0f);
-        pca9685_set_pulse_us(channel, pulse_us);
-        ESP_LOGI(TAG, "CH%02d [SF006] -> %3d deg (Pulse: %d us)", channel, angle, pulse_us);
-    } 
-    else if (type == SERVO_TYPE_SG90) {
-        int speed = param1;
-        int duration_ms = param2;
-
-        if (speed > 100)  speed = 100;
-        if (speed < -100) speed = -100;
-
-        // 加大死区处理：如果速度极低，直接当0处理，防止堵转发热
-        if (speed >= -5 && speed <= 5) speed = 0;
-
-        uint16_t pulse_us = 0;
-        
-        if (speed == 0) {
-            pulse_us = SG90_STOP_PULSE_US; 
+    /* ---- 360° 连续旋转舵机 ---- */
+    if (type == SERVO_TYPE_SG90_360) {
+        if (mode == SERVO_MODE_SPEED_TIME) {
+            return internal_servo_360_speed_time(channel,
+                                                 (int)param1,
+                                                 (uint32_t)param2);
+        } else if (mode == SERVO_MODE_SPEED_ANGLE) {
+            return internal_servo_360_speed_angle(channel,
+                                                  (int)param1,
+                                                  param2);
         } else {
-            // 速度映射：每 1% 速度，偏移 10us
-            pulse_us = SG90_STOP_PULSE_US + (uint16_t)(speed * 10);
+            ESP_LOGE(TAG, "SG90_360 doesn't support SERVO_MODE_POSITION");
+            return ESP_ERR_INVALID_ARG;
         }
-        
-        pca9685_set_pulse_us(channel, pulse_us);
-        
-        // 打印出 PCA9685 真正输出的 tick 数，让你看清真相
-        uint16_t real_ticks = (uint16_t)((pulse_us / 4.875f) + 0.5f);
-        float real_us = real_ticks * 4.875f;
-        
-        if (speed == 0) {
-            ESP_LOGI(TAG, "CH%02d [SG90]  -> STOP (Target: %d us, Actual: %.1f us)", 
-                     channel, pulse_us, real_us);
-        } else {
-            ESP_LOGI(TAG, "CH%02d [SG90]  -> %s %d%% (Actual: %.1f us)", 
-                     channel, (speed > 0 ? "FWD" : "REV"), (speed > 0 ? speed : -speed), real_us);
-        }
+    }
 
-        if (duration_ms > 0) {
-            vTaskDelay(pdMS_TO_TICKS(duration_ms));
-            pca9685_set_pulse_us(channel, SG90_STOP_PULSE_US); 
-            ESP_LOGI(TAG, "CH%02d [SG90]  -> STOP (Time up)", channel);
-        }
-    } 
+    return ESP_ERR_INVALID_ARG;
 }
 
+/* =========================================================================
+ *  便捷封装（推荐在主函数里用，免去记 param1/param2 含义）
+ * ========================================================================= */
+static inline esp_err_t servo_180_set_angle(uint8_t ch, servo_type_t type, float angle)
+{
+    return servo_control(ch, type, SERVO_MODE_POSITION, angle, 0.0f);
+}
+static inline esp_err_t servo_360_speed_time(uint8_t ch, int speed, uint32_t ms)
+{
+    return servo_control(ch, SERVO_TYPE_SG90_360, SERVO_MODE_SPEED_TIME,
+                         (float)speed, (float)ms);
+}
+static inline esp_err_t servo_360_speed_angle(uint8_t ch, int speed, float angle)
+{
+    return servo_control(ch, SERVO_TYPE_SG90_360, SERVO_MODE_SPEED_ANGLE,
+                         (float)speed, angle);
+}
+static inline esp_err_t servo_360_stop(uint8_t ch)
+{
+    return servo_control(ch, SERVO_TYPE_SG90_360, SERVO_MODE_SPEED_TIME,
+                         0.0f, 0.0f);
+}
+
+/* =========================================================================
+ *  主函数示例
+ * ========================================================================= */
 void app_main(void)
 {
     i2c_config_t conf = {
@@ -280,118 +336,132 @@ void app_main(void)
         ESP_LOGE(TAG, "PCA9685 init failed!");
         return;
     }
-    ESP_LOGI(TAG, "PCA9685 ready. Start testing...");
+    ESP_LOGI(TAG, "PCA9685 ready.");
 
     while (1) {
 
-        // 这里是速度加时间的调控
-        servo_ctrl(0, SERVO_TYPE_SG90, 50, 1000);  
-        vTaskDelay(pdMS_TO_TICKS(10000));           
+        /* ============================================================
+         * 写法 A：直接调统一入口 servo_control
+         * ============================================================ */
 
-        // servo_ctrl(0, SERVO_TYPE_SG90, -50, 1000); 
+        // /* ① 180° SF006：转到 90° */
+        // servo_control(0, SERVO_TYPE_SF006_180, SERVO_MODE_POSITION, 90.0f, 0);
         // vTaskDelay(pdMS_TO_TICKS(1000));
 
 
-        // 这里是速度加角度的调控
 
-        /* 正转 90°，speed=10 */
-        sg90_rotate_angle(0, +10, 90.0f);
-        vTaskDelay(pdMS_TO_TICKS(10000));
+        /* ② 180° SG90：转到 45° */
+        servo_control(0, SERVO_TYPE_SG90_180, SERVO_MODE_POSITION, 0.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
-        /* 反转 90°，回到原位附近 */
-        sg90_rotate_angle(0, -10, 90.0f);
-        vTaskDelay(pdMS_TO_TICKS(10000));
+        servo_control(0, SERVO_TYPE_SG90_180, SERVO_MODE_POSITION, 45.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
-        /* 正转一整圈 360°，speed=15 */
-        sg90_rotate_angle(0, +15, 360.0f);
-        vTaskDelay(pdMS_TO_TICKS(10000));
+        servo_control(0, SERVO_TYPE_SG90_180, SERVO_MODE_POSITION, 90.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
-        /* 反转 180° */
-        sg90_rotate_angle(0, -15, 180.0f);
-        vTaskDelay(pdMS_TO_TICKS(10000));
+        servo_control(0, SERVO_TYPE_SG90_180, SERVO_MODE_POSITION, 180.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
-        /* 低速小角度测试：speed=6，转 45° */
-        sg90_rotate_angle(0, +6, 45.0f);
-        vTaskDelay(pdMS_TO_TICKS(10000));
+        servo_control(0, SERVO_TYPE_SG90_180, SERVO_MODE_POSITION, 90.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+
+
+
+        servo_control(4, SERVO_TYPE_SG90_180, SERVO_MODE_POSITION, 0.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        servo_control(4, SERVO_TYPE_SG90_180, SERVO_MODE_POSITION, 45.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        servo_control(4, SERVO_TYPE_SG90_180, SERVO_MODE_POSITION, 90.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        servo_control(4, SERVO_TYPE_SG90_180, SERVO_MODE_POSITION, 180.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        servo_control(4, SERVO_TYPE_SG90_180, SERVO_MODE_POSITION, 90.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+
+
+
+        servo_control(8, SERVO_TYPE_SF006_180, SERVO_MODE_POSITION, 0.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        servo_control(8, SERVO_TYPE_SF006_180, SERVO_MODE_POSITION, 45.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        servo_control(8, SERVO_TYPE_SF006_180, SERVO_MODE_POSITION, 90.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        servo_control(8, SERVO_TYPE_SF006_180, SERVO_MODE_POSITION, 180.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        servo_control(8, SERVO_TYPE_SF006_180, SERVO_MODE_POSITION, 90.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
         
+
         
-        /* 正转 90°，speed=10 */
-        sg90_rotate_angle(8, +10, 90.0f);
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        servo_control(12, SERVO_TYPE_SF006_180, SERVO_MODE_POSITION, 0.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
-        /* 反转 90°，回到原位附近 */
-        sg90_rotate_angle(8, -10, 90.0f);
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        servo_control(12, SERVO_TYPE_SF006_180, SERVO_MODE_POSITION, 45.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
-        /* 正转一整圈 360°，speed=15 */
-        sg90_rotate_angle(8, +15, 360.0f);
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        servo_control(12, SERVO_TYPE_SF006_180, SERVO_MODE_POSITION, 90.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
-        /* 反转 180° */
-        sg90_rotate_angle(8, -15, 180.0f);
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        servo_control(12, SERVO_TYPE_SF006_180, SERVO_MODE_POSITION, 180.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
-        /* 低速小角度测试：speed=6，转 45° */
-        sg90_rotate_angle(8, +6, 45.0f);
-        vTaskDelay(pdMS_TO_TICKS(2000));
-
-
-
-        /* 正转 90°，speed=10 */
-        sg90_rotate_angle(4, +10, 90.0f);
-        vTaskDelay(pdMS_TO_TICKS(2000));
-
-        /* 反转 90°，回到原位附近 */
-        sg90_rotate_angle(4, -10, 90.0f);
-        vTaskDelay(pdMS_TO_TICKS(2000));
-
-        /* 正转一整圈 360°，speed=15 */
-        sg90_rotate_angle(4, +15, 360.0f);
-        vTaskDelay(pdMS_TO_TICKS(2000));
-
-        /* 反转 180° */
-        sg90_rotate_angle(4, -15, 180.0f);
-        vTaskDelay(pdMS_TO_TICKS(2000));
-
-        /* 低速小角度测试：speed=6，转 45° */
-        sg90_rotate_angle(4, +6, 45.0f);
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        servo_control(12, SERVO_TYPE_SF006_180, SERVO_MODE_POSITION, 90.0f, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
 
 
 
-        // servo_ctrl(4, SERVO_TYPE_SG90, 50, 1000);  
-        // vTaskDelay(pdMS_TO_TICKS(1000));           
 
-        // servo_ctrl(4, SERVO_TYPE_SG90, -50, 1000); 
+
+
+
+
+
+        // /* ③ 360° SG90：50% 速度转 1 秒（速度+时间） */
+        // servo_control(4, SERVO_TYPE_SG90_360, SERVO_MODE_SPEED_TIME, 50.0f, 1000.0f);
+        // vTaskDelay(pdMS_TO_TICKS(1500));
+
+        // /* ④ 360° SG90：速度 10 正转 90°（速度+角度） */
+        // servo_control(4, SERVO_TYPE_SG90_360, SERVO_MODE_SPEED_ANGLE, 10.0f, 90.0f);
+        // vTaskDelay(pdMS_TO_TICKS(1500));
+
+        // /* ⑤ 360° SG90：反转 180°（速度+角度，负速度=反转） */
+        // servo_control(4, SERVO_TYPE_SG90_360, SERVO_MODE_SPEED_ANGLE, -15.0f, 180.0f);
+        // vTaskDelay(pdMS_TO_TICKS(1500));
+
+        // /* ============================================================
+        //  * 写法 B：用便捷封装，语义更清楚
+        //  * ============================================================ */
+
+        // servo_180_set_angle(0, SERVO_TYPE_SF006_180, 0.0f);
         // vTaskDelay(pdMS_TO_TICKS(1000));
 
-
-        // servo_ctrl(8, SERVO_TYPE_SG90, 50, 1000);  
-        // vTaskDelay(pdMS_TO_TICKS(1000));           
-
-        // servo_ctrl(8, SERVO_TYPE_SG90, -50, 1000); 
-        // vTaskDelay(pdMS_TO_TICKS(1000));
-        
-
-
-        // // 1. 转到 0 度（通常是最左边/最右边）
-        // servo_ctrl(4, SERVO_TYPE_SF006, 0, 0);
-        // vTaskDelay(pdMS_TO_TICKS(1000)); // 等 1 秒让它转到位
-
-        // // 2. 转到中位 90 度
-        // servo_ctrl(4, SERVO_TYPE_SF006, 90, 0);
+        // servo_180_set_angle(0, SERVO_TYPE_SF006_180, 180.0f);
         // vTaskDelay(pdMS_TO_TICKS(1000));
 
-        // // 3. 转到 180 度（另一侧极限）
-        // servo_ctrl(4, SERVO_TYPE_SF006, 180, 0);
+        // /* 360° 正转 80%，持续转，5 秒后手动停 */
+        // servo_360_speed_time(4, 80, 0);              /* 0 = 一直转 */
+        // vTaskDelay(pdMS_TO_TICKS(5000));
+        // servo_360_stop(4);
         // vTaskDelay(pdMS_TO_TICKS(1000));
-        
-        // // 4. 回到中位，准备下一轮
-        // servo_ctrl(4, SERVO_TYPE_SF006, 90, 0);
-        // vTaskDelay(pdMS_TO_TICKS(2000)); // 停 2 秒再循环
-        
+
+        // /* 360° 以速度 8 反转 45° */
+        // servo_360_speed_angle(4, -8, 45.0f);
+        // vTaskDelay(pdMS_TO_TICKS(1500));
+
         ESP_LOGI(TAG, "--- Test Loop Done ---");
+        vTaskDelay(pdMS_TO_TICKS(2000));
     }
 }
