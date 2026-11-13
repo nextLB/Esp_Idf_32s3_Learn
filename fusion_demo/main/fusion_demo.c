@@ -112,6 +112,7 @@
 #define DOG_CMD_STOP                0
 #define DOG_CMD_FORWARD             1
 #define DOG_CMD_BACKWARD            2
+#define DOG_CMD_SIT                 3
 
 /* ---------------- 日志 TAG ---------------- */
 static const char *TAG_APP  = "APP";
@@ -268,6 +269,20 @@ static void dog_center(void)
     vTaskDelay(pdMS_TO_TICKS(DOG_SETTLE_MS));
 }
 
+/* 坐下：前腿保持 90° 中位支撑，后腿同时转到 0° */
+static void dog_cycle_sit(void)
+{
+    /* 前腿保持中位 */
+    set_LF(0.0f);
+    set_RF(0.0f);
+
+    /* 后腿直接给绝对角度 0°（避免通过 dir 反推 offset，不易读） */
+    servo_control(LEG_LR_CH, LEG_LR_TYPE, SERVO_MODE_POSITION, 180.0f, 0.0f);
+    servo_control(LEG_RR_CH, LEG_RR_TYPE, SERVO_MODE_POSITION, 180.0f, 0.0f);
+
+    vTaskDelay(pdMS_TO_TICKS(DOG_SETTLE_MS));
+}
+
 
 /* ============================================================================
  *                          命令接口（跨核）
@@ -278,8 +293,8 @@ static volatile int g_last_cmd = -1;
 /* 任意任务可调用；不阻塞，dog_task 会立刻切换 */
 void dog_execute(int cmd)
 {
-    if (cmd < DOG_CMD_STOP || cmd > DOG_CMD_BACKWARD) {
-        ESP_LOGW(TAG_DOG, "invalid cmd %d (only 0/1/2)", cmd);
+    if (cmd < DOG_CMD_STOP || cmd > DOG_CMD_SIT) {
+        ESP_LOGW(TAG_DOG, "invalid cmd %d (only 0/1/2/3)", cmd);
         return;
     }
     g_cmd = cmd;
@@ -291,6 +306,7 @@ static const char *cmd_name(int cmd)
     case DOG_CMD_STOP:     return "STOP     (停止)";
     case DOG_CMD_FORWARD:  return "FORWARD  (前进/BOUND)";
     case DOG_CMD_BACKWARD: return "BACKWARD (后退/DIAGONAL)";
+    case DOG_CMD_SIT:      return "SIT      (坐下)";
     default:               return "UNKNOWN";
     }
 }
@@ -315,6 +331,7 @@ static void dog_task(void *arg)
         case DOG_CMD_STOP:     vTaskDelay(pdMS_TO_TICKS(50)); break;
         case DOG_CMD_FORWARD:  dog_cycle_forward();           break;
         case DOG_CMD_BACKWARD: dog_cycle_backward();          break;
+        case DOG_CMD_SIT:      dog_cycle_sit();               break;
         default:               vTaskDelay(pdMS_TO_TICKS(50)); break;
         }
     }
@@ -517,7 +534,7 @@ static int udp_parse_cmd(const char *buf, int len)
     if (i >= len) return -1;
 
     char c = buf[i];
-    if (c < '0' || c > '2') return -1;
+    if (c < '0' || c > '3') return -1;
     int cmd = c - '0';
 
     i++;
@@ -580,7 +597,7 @@ static void udp_listener_task(void *arg)
             ESP_LOGI(TAG_UDP, "命令执行: %d -> %s", cmd, cmd_name(cmd));
             ack = UDP_ACK_OK;
         } else {
-            ESP_LOGW(TAG_UDP, "非法命令 [%s]，仅支持 0/1/2", rx_buf);
+            ESP_LOGW(TAG_UDP, "非法命令 [%s]，仅支持 0/1/2/3", rx_buf);
             ack = UDP_ACK_ERR;
         }
 
